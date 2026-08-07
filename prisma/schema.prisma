@@ -1,51 +1,428 @@
 generator client {
   provider = "prisma-client-js"
-  previewFeatures = ["mongoDb"]
 }
 
 datasource db {
-  provider = "mongodb"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
-// Example models – expand as needed
+// User Model
 model User {
-  id           String   @id @default(auto()) @map("_id") @db.ObjectId
-  email        String   @unique
-  name         String?
-  role         Role
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String?
+  profileImage  String?
+  password      String?
+  role          String    @default("user")
+  industry      String?
+  location      String?
+  bio           String?
+  
+  applications  Application[]
+  resumes       Resume[]
+  coverLetters  CoverLetter[]
+  interviews    MockInterview[]
+  skillGaps     SkillGap[]
+  settings      UserSettings?
+  notifications Notification[]
+  
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  @@index([email])
+}
+
+// Job Model
+model Job {
+  id               String   @id @default(cuid())
+  title            String
+  company          String
+  location         String
+  workMode         String
+  jobType          String
+  description      String   @db.Text
+  requirements     String[]
+  niceToHaves      String[]
+  skills           String[]
+  industry         String
+  level            String
+  salaryMin        Int?
+  salaryMax        Int?
+  salaryCurrency   String   @default("GBP")
+  visaSponsorship  Boolean  @default(false)
+  securityClearance String?
+  companySize      String?
+  source           String
+  sourceUrl        String   @unique
+  
+  sponsorshipId    String?
+  sponsorship      Sponsorship? @relation(fields: [sponsorshipId], references: [id])
+  
+  applications     Application[]
+  skillGaps        SkillGap[]
+  
+  postedAt         DateTime  @default(now())
+  deadline         DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  
+  @@index([company])
+  @@index([title])
+  @@index([location])
+}
+
+// Application Model
+model Application {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  jobId       String
+  job         Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  
+  status      String   @default("applied")
+  notes       String   @db.Text
+  attachments String[]
+  
+  timeline    TimelineEntry[]
+  
+  isWishlisted Boolean @default(false)
+  
+  followUpDate DateTime?
+  lastFollowUp DateTime?
+  
+  appliedAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  
+  @@unique([userId, jobId])
+  @@index([userId])
+  @@index([status])
+}
+
+// Timeline Entry Model
+model TimelineEntry {
+  id              String      @id @default(cuid())
+  applicationId   String
+  application     Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  
+  type            String
+  title           String
+  description     String      @db.Text
+  attachments     String[]
+  
+  createdAt       DateTime    @default(now())
+  
+  @@index([applicationId])
+}
+
+// Resume Model
+model Resume {
+  id           String   @id @default(cuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  title        String
+  content      String   @db.Text
+  skills       String[]
+  
+  experiences  Experience[]
+  education    Education[]
+  certifications ResumeCertification[]
+  
+  isPrimary    Boolean  @default(false)
+  atsOptimized Boolean  @default(false)
+  fileUrl      String?
+  
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
-  applications Application[]
+  
+  @@index([userId])
 }
 
-enum Role {
-  STUDENT
-  GRADUATE
-  SOC_ANALYST
-  CYBER_PROFESSIONAL
-  IT_PROFESSIONAL
-  CAREER_CHANGER
+// Experience Model
+model Experience {
+  id          String  @id @default(cuid())
+  resumeId    String
+  resume      Resume  @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+  
+  title       String
+  company     String
+  location    String
+  description String  @db.Text
+  skills      String[]
+  
+  startDate   DateTime
+  endDate     DateTime?
+  
+  @@index([resumeId])
 }
 
-model Application {
-  id           String   @id @default(auto()) @map("_id") @db.ObjectId
-  user         User     @relation(fields: [userId], references: [id])
-  userId       String   @db.ObjectId
-  jobId        String   // reference to external job source
-  status       ApplicationStatus
-  appliedAt    DateTime @default(now())
-  notes        String?
-  reminders    Reminder[]
+// Education Model
+model Education {
+  id        String  @id @default(cuid())
+  resumeId  String
+  resume    Resume  @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+  
+  school    String
+  degree    String
+  field     String
+  grade     String?
+  activities String?
+  
+  startDate DateTime
+  endDate   DateTime
+  
+  @@index([resumeId])
 }
 
-enum ApplicationStatus {
-  APPLIED
-  INTERVIEW
-  OFFER
-  REJECTED
-  WITHDRAWN
-  GHOSTED
+// Resume Certification Model
+model ResumeCertification {
+  id              String  @id @default(cuid())
+  resumeId        String
+  resume          Resume  @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+  
+  name            String
+  issuer          String
+  credentialId    String?
+  credentialUrl   String?
+  
+  issueDate       DateTime
+  expirationDate  DateTime?
+  
+  @@index([resumeId])
+}
+
+// Cover Letter Model
+model CoverLetter {
+  id          String  @id @default(cuid())
+  userId      String
+  user        User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  title       String
+  content     String  @db.Text
+  template    String?
+  
+  jobTitle    String?
+  companyName String?
+  tone        String  @default("professional")
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@index([userId])
+}
+
+// Mock Interview Model
+model MockInterview {
+  id          String    @id @default(cuid())
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  role        String
+  specialty   String?
+  difficulty  String    @default("medium")
+  
+  questions   InterviewQuestion[]
+  answers     String[]
+  feedback    String?   @db.Text
+  score       Int?
+  
+  startedAt   DateTime  @default(now())
+  endedAt     DateTime?
+  duration    Int?
+  
+  @@index([userId])
+}
+
+// Interview Question Model
+model InterviewQuestion {
+  id              String          @id @default(cuid())
+  mockInterviewId String
+  mockInterview   MockInterview   @relation(fields: [mockInterviewId], references: [id], onDelete: Cascade)
+  
+  type            String
+  category        String
+  question        String          @db.Text
+  difficulty      String          @default("medium")
+  starAnswer      String?         @db.Text
+  tags            String[]
+  
+  @@index([mockInterviewId])
+}
+
+// Skill Gap Model
+model SkillGap {
+  id                String    @id @default(cuid())
+  userId            String
+  user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  jobId             String
+  job               Job       @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  
+  missingSkills     String    @db.Text
+  strongSkills      String[]
+  gapScore          Int
+  matchPercentage   Int
+  
+  recommendations   Recommendation[]
+  
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  
+  @@unique([userId, jobId])
+  @@index([userId])
+}
+
+// Recommendation Model
+model Recommendation {
+  id              String    @id @default(cuid())
+  skillGapId      String
+  skillGap        SkillGap  @relation(fields: [skillGapId], references: [id], onDelete: Cascade)
+  
+  skill           String
+  certifications  String[]
+  courses         String    @db.Text
+  estimatedTime   String
+  priority        Int
+  
+  @@index([skillGapId])
+}
+
+// Learning Roadmap Model
+model LearningRoadmap {
+  id                String          @id @default(cuid())
+  title             String
+  specialization    String
+  description       String          @db.Text
+  difficulty        String          @default("beginner")
+  estimatedDuration String
+  
+  stages            LearningStage[]
+  
+  createdAt         DateTime @default(now())
+}
+
+// Learning Stage Model
+model LearningStage {
+  id          String          @id @default(cuid())
+  roadmapId   String
+  roadmap     LearningRoadmap @relation(fields: [roadmapId], references: [id], onDelete: Cascade)
+  
+  title       String
+  order       Int
+  description String  @db.Text
+  
+  resources   String  @db.Text
+  certifications String[]
+  projects    String  @db.Text
+  
+  @@index([roadmapId])
+}
+
+// Sponsorship Status Model
+model Sponsorship {
+  id              String  @id @default(cuid())
+  companyName     String  @unique
+  visaTypes       String  @db.Text
+  sponsorStatus   String  @default("unknown")
+  confidence      Int     @default(0)
+  notes           String?
+  
+  jobs            Job[]
+  
+  lastUpdated     DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+// User Settings Model
+model UserSettings {
+  id                    String  @id @default(cuid())
+  userId                String  @unique
+  user                  User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  theme                 String  @default("dark")
+  language              String  @default("en")
+  
+  emailOnNewJobs        Boolean @default(true)
+  emailOnInterviewReminder Boolean @default(true)
+  emailOnOffers         Boolean @default(true)
+  emailOnRejections     Boolean @default(false)
+  pushNotifications     Boolean @default(true)
+  dailyDigest           Boolean @default(false)
+  
+  profilePrivacy        String  @default("private")
+  showInSearchResults   Boolean @default(false)
+  allowMessages         Boolean @default(true)
+  shareApplicationStatus Boolean @default(false)
+  
+  autoBackup            Boolean @default(true)
+  backupFrequency       String  @default("weekly")
+  lastBackupDate        DateTime?
+  
+  updatedAt             DateTime @updatedAt
+}
+
+// Notification Model
+model Notification {
+  id          String  @id @default(cuid())
+  userId      String
+  user        User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  type        String
+  title       String
+  message     String  @db.Text
+  relatedId   String?
+  
+  isRead      Boolean @default(false)
+  
+  createdAt   DateTime @default(now())
+  
+  @@index([userId])
+  @@index([isRead])
+}
+
+// Certification Tracking Model
+model CertificationTracking {
+  id              String  @id @default(cuid())
+  name            String
+  issuer          String
+  field           String
+  description     String? @db.Text
+  
+  requiredCourses String[]
+  estimatedTime   String
+  difficulty      String
+  salary_boost    Int?
+  
+  createdAt       DateTime @default(now())
+}
+
+// Analytics Event Model
+model AnalyticsEvent {
+  id          String  @id @default(cuid())
+  userId      String?
+  eventType   String
+  eventData   String  @db.Text
+  sessionId   String
+  
+  timestamp   DateTime @default(now())
+  
+  @@index([userId])
+  @@index([eventType])
+  @@index([timestamp])
+}
+
+// AI Generated Content Model
+model AIGeneratedContent {
+  id                String  @id @default(cuid())
+  userId            String
+  
+  type              String
+  originalContent   String  @db.Text
+  generatedContent  String  @db.Text
+  context           String? @db.Text
+  model             String  @default("gpt-4")
+  
+  createdAt         DateTime @default(now())
 }
 
 model Reminder {

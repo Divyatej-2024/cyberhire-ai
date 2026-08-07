@@ -1,43 +1,169 @@
-# CyberHire AI
+# CyberHire AI 🚀
 
-A premium AI‑powered job search and application tracking platform for Cyber Security and IT professionals.
+AI-powered job search and application tracking platform specifically designed for cybersecurity and IT professionals.
 
-## Features
-- AI job finder across multiple job boards
-- Sponsorship checker
-- AI resume & cover‑letter builder
-- Application tracker with timeline & reminders
-- Interview preparation & skill‑gap analysis
-- Certifications & learning roadmaps
-- Dark mode, glassmorphism UI, PWA support
+## 🎯 Features
 
-## Tech Stack
-- **Frontend:** Next.js 15 (App Router), React 19, TypeScript, TailwindCSS, shadcn/ui, Framer Motion, React Hook Form, Zod
-- **Backend:** Next.js Server Actions, REST API, Prisma ORM
-- **Database:** PostgreSQL via Supabase
-- **Auth:** Clerk (or NextAuth)
-- **Deployment:** GitHub + Vercel
-- **CI/CD:** GitHub Actions
-- **Containerisation:** Docker
+### Core Modules
 
-## Getting Started
+1. **Dashboard** - Comprehensive overview of applications, interviews, and statistics
+2. **AI Job Finder** - Search jobs from LinkedIn, Indeed, Reed, and more
+3. **Application Tracker** - Track all applications with timeline and notes
+4. **Resume Builder** - Create ATS-optimized resumes with AI assistance
+5. **Cover Letter Generator** - Generate personalized cover letters
+6. **Interview Preparation** - Practice with AI-generated questions
+7. **Skill Gap Analysis** - Identify missing skills and learning resources
+8. **Sponsorship Checker** - Check visa sponsorship eligibility
+9. **Certifications** - Track and manage professional certifications
+10. **Learning Dashboard** - Career roadmaps and learning resources
+
+### Technical Features
+
+- ✅ **Modern UI** - Dark mode, cyber theme, glassmorphism design
+- ✅ **Responsive** - Mobile-first, fully responsive design
+- ✅ **Performance** - Server components, lazy loading, caching
+- ✅ **Security** - Authentication, CSRF protection, input validation
+- ✅ **Scalable** - Modular architecture, SOLID principles
+- ✅ **Accessible** - WCAG 2.2 compliant
+- ✅ **SEO** - Metadata, Open Graph, sitemap
+
+## 🛠 Tech Stack
+
+### Frontend
+- **Next.js 15** - React framework with App Router
+- **React 19** - UI library
+- **TypeScript** - Type safety
+- **TailwindCSS** - Utility-first CSS
+- **Framer Motion** - Animations
+- **React Hook Form** - Form management
+- **Zod** - Schema validation
+
+### Backend
+- **Next.js Server Actions** - API layer
+- **REST API** - Additional endpoints
+- **Prisma ORM** - Database access
+
+### Database
+- **PostgreSQL** - Relational database
+- **Supabase** - Backend as a service
+
+### Authentication
+- **Clerk** / **NextAuth** - Authentication
+
+### DevOps
+- **Docker** - Containerization
+- **GitHub Actions** - CI/CD
+- **Vercel** - Deployment
+
+## 📋 Prerequisites
+
+- **Node.js** 18+ or 20+
+- **npm** or **yarn**
+- **PostgreSQL** 14+ (or Supabase)
+- **Git**
+
+## 🚀 Installation
+
+### 1. Clone the Repository
+
 ```bash
-# Clone repo
-git clone <repo-url>
+git clone https://github.com/yourusername/cyberhire-ai.git
 cd cyberhire-ai
+```
 
-# Install dependencies
+### 2. Install Dependencies
+
+```bash
 npm install
+```
 
-# Set up environment variables (see .env.example)
+### 3. Set Up Environment Variables
+
+Copy `.env.example` to `.env.local` and fill in your values:
+
+```bash
 cp .env.example .env.local
+```
 
-# Initialise database
-npx prisma migrate dev --name init
+### 4. Set Up Database
 
-# Run dev server
+```bash
+npm run prisma:generate
+npm run prisma:migrate
+```
+
+### 5. Start Development Server
+
+```bash
 npm run dev
 ```
 
-## License
-MIT
+## 🐳 Docker Setup
+
+```bash
+docker-compose -f docker-compose.prod.yml up -d
+```
+
+## 📦 Build for Production
+
+```bash
+npm run build
+npm start
+```
+
+## 🌐 Deployment
+
+### Vercel (Recommended)
+
+```bash
+npm i -g vercel
+vercel --prod
+```
+
+### GitHub Actions
+
+Automatic deployment on push to main branch via `.github/workflows/ci-cd.yml`
+
+## 🧪 Testing
+
+```bash
+npm test
+npm run test:watch
+npm run e2e
+```
+
+## 🔍 Code Quality
+
+```bash
+npm run lint
+npm run format
+npm run type-check
+```
+
+## 🔒 Security
+
+- JWT Authentication
+- CSRF Protection
+- Input Validation (Zod)
+- XSS Prevention
+- SQL Injection Prevention (Prisma)
+- Rate Limiting
+- Security Headers (Helmet)
+
+## 📝 License
+
+MIT License - see [LICENSE](LICENSE) for details.
+
+## 🙏 Acknowledgments
+
+- Next.js team and community
+- TailwindCSS community
+- Prisma team
+
+## 📞 Support
+
+For support, open an issue on GitHub.
+
+---
+
+**Built with ❤️ for cybersecurity professionals**
