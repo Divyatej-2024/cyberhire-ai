@@ -1,13 +1,11 @@
-/* eslint-disable @typescript-eslint/no-var-requires */
-
-module.exports = {
-  extends: ['next/core-web-vitals', 'next/typescript'],
-  rules: {
-    'react-hooks/exhaustive-deps': 'warn',
-    '@typescript-eslint/no-explicit-any': 'warn',
-    '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
-    'prefer-const': 'error',
-    'no-var': 'error',
-    'no-console': ['warn', { allow: ['warn', 'error'] }],
-  },
-};
+{
+  "extends": ["next/core-web-vitals", "next/typescript"],
+  "rules": {
+    "react-hooks/exhaustive-deps": "warn",
+    "@typescript-eslint/no-explicit-any": "warn",
+    "@typescript-eslint/no-unused-vars": ["error", { "argsIgnorePattern": "^_" }],
+    "prefer-const": "error",
+    "no-var": "error",
+    "no-console": ["warn", { "allow": ["warn", "error"] }]
+  }
+}
