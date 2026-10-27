@@ -1,7 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  swcMinify: true,
   
   images: {
     remotePatterns: [
@@ -62,11 +61,6 @@ const nextConfig = {
     NEXT_PUBLIC_APP_DESCRIPTION: 'AI-powered Job Search and Application Tracking Platform',
   },
 
-  // Experimental features
-  experimental: {
-    optimizeCss: true,
-    optimizePackageImports: ['@radix-ui/react-icons'],
-  },
 };
 
 module.exports = nextConfig;
