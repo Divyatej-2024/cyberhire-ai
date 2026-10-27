@@ -65,25 +65,54 @@ export default function ResumeBuilder() {
   const [jobDescription, setJobDescription] = useState('');
   const [activeTab, setActiveTab] = useState<'edit' | 'preview'>('edit');
   const [saved, setSaved] = useState(false);
+  const [saveMessage, setSaveMessage] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
   const [hasLoaded, setHasLoaded] = useState(false);
 
   useEffect(() => {
-    try {
-      const stored = window.localStorage.getItem(STORAGE_KEY);
-      if (stored) {
-        const parsed = JSON.parse(stored) as Partial<Profile>;
-        setProfile({ ...emptyProfile, ...parsed });
+    let cancelled = false;
+    const load = async () => {
+      try {
+        const response = await fetch('/api/resume-profile', { cache: 'no-store' });
+        if (response.ok) {
+          const data = await response.json();
+          if (!cancelled && data.profile && typeof data.profile === 'object') {
+            setProfile({ ...emptyProfile, ...data.profile });
+            setJobTitle(typeof data.jobTitle === 'string' ? data.jobTitle : '');
+            setCompany(typeof data.company === 'string' ? data.company : '');
+            setJobDescription(typeof data.jobDescription === 'string' ? data.jobDescription : '');
+            setSaveMessage('Loaded your profile from your account.');
+            setHasLoaded(true);
+            return;
+          }
+        }
+      } catch {
+        // Continue with a local copy if the server cannot be reached.
       }
-    } catch {
-      // Ignore invalid or unavailable browser storage and let the user continue.
-    } finally {
-      setHasLoaded(true);
-    }
+      try {
+        const stored = window.localStorage.getItem(STORAGE_KEY);
+        if (stored && !cancelled) {
+          const parsed = JSON.parse(stored) as Partial<Profile> & { jobTitle?: string; company?: string; jobDescription?: string };
+          setProfile({ ...emptyProfile, ...parsed });
+          setJobTitle(parsed.jobTitle ?? '');
+          setCompany(parsed.company ?? '');
+          setJobDescription(parsed.jobDescription ?? '');
+          setSaveMessage('Loaded a browser-only copy. Sign in to sync it to your account.');
+        }
+      } catch {
+        // Ignore invalid or unavailable browser storage and let the user continue.
+      } finally {
+        if (!cancelled) setHasLoaded(true);
+      }
+    };
+    void load();
+    return () => { cancelled = true; };
   }, []);
 
   const update = (field: keyof Profile, value: string) => {
     setProfile((current) => ({ ...current, [field]: value }));
     setSaved(false);
+    setSaveMessage('');
   };
 
   const requiredKeywords = useMemo(() => extractKeywords(jobDescription), [jobDescription]);
@@ -103,12 +132,41 @@ export default function ResumeBuilder() {
     ? Math.round((matchedKeywords.length / requiredKeywords.length) * 100)
     : 0;
 
-  const saveProfile = () => {
+  const saveProfile = async () => {
+    setIsSaving(true);
+    setSaved(false);
+    setSaveMessage('');
+    const payload = { profile, jobTitle, company, jobDescription };
     try {
-      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(profile));
-      setSaved(true);
-    } catch {
-      window.alert('Your browser could not save this profile. You can still preview and print the CV.');
+      const response = await fetch('/api/resume-profile', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      if (response.ok) {
+        window.localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+        setSaved(true);
+        setSaveMessage('Saved securely to your account.');
+        return;
+      }
+      if (response.status === 401) {
+        window.localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+        setSaved(true);
+        setSaveMessage('Saved in this browser only. Sign in to save across devices.');
+        return;
+      }
+      const result = await response.json().catch(() => ({}));
+      throw new Error(typeof result.error === 'string' ? result.error : 'Server could not save your profile.');
+    } catch (error) {
+      try {
+        window.localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+        setSaved(true);
+        setSaveMessage(error instanceof Error ? `Browser copy saved; server sync failed: ${error.message}` : 'Browser copy saved; server sync failed.');
+      } catch {
+        setSaveMessage('Could not save the profile. Please check your browser storage and database configuration.');
+      }
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -128,7 +186,7 @@ export default function ResumeBuilder() {
           <p className="mt-2 max-w-3xl text-slate-300">Keep one verified career profile, paste each job advert, and prepare a focused CV without inventing experience or qualifications.</p>
         </div>
         <div className="flex flex-wrap gap-2 no-print">
-          <button type="button" onClick={saveProfile} className="rounded-lg border border-slate-600 px-4 py-2 text-sm font-semibold hover:border-cyan-400">{saved ? '✓ Profile saved' : 'Save profile'}</button>
+          <button type="button" onClick={saveProfile} className="rounded-lg border border-slate-600 px-4 py-2 text-sm font-semibold hover:border-cyan-400">{isSaving ? 'Saving…' : saved ? '✓ Profile saved' : 'Save profile'}</button>
           <button type="button" onClick={printCv} disabled={!cvReady} className="rounded-lg bg-cyan-400 px-4 py-2 text-sm font-bold text-slate-950 disabled:cursor-not-allowed disabled:opacity-40">Print / Save PDF</button>
         </div>
       </div>
@@ -143,7 +201,7 @@ export default function ResumeBuilder() {
           <div className="space-y-6">
             <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-5 sm:p-6">
               <h2 className="mb-1 text-xl font-bold">1. Your master career profile</h2>
-              <p className="mb-5 text-sm text-slate-400">Use real details only. This profile is saved in this browser when you press Save profile; it is not uploaded to a server by this page.</p>
+              <p className="mb-5 text-sm text-slate-400">Use real details only. When signed in, Save profile syncs your profile and target job to your account. A browser-only copy is kept as a fallback.</p>
               <div className="grid gap-4 sm:grid-cols-2">
                 {([
                   ['fullName', 'Full name', 'e.g. Your full name'],
@@ -179,8 +237,8 @@ export default function ResumeBuilder() {
                   <textarea value={profile.certifications} onChange={(event) => update('certifications', event.target.value)} rows={3} placeholder="Only completed or clearly labelled in-progress qualifications." className="mt-1.5 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2.5 text-white placeholder:text-slate-600 focus:border-cyan-400 focus:outline-none" />
                 </label>
               </div>
-              <button type="button" onClick={saveProfile} className="mt-5 rounded-lg border border-cyan-500 px-4 py-2.5 text-sm font-semibold text-cyan-300 hover:bg-cyan-950">{saved ? '✓ Saved in this browser' : 'Save master profile'}</button>
-              {hasLoaded && <p className="mt-2 text-xs text-slate-500">Browser profile storage: ready.</p>}
+              <button type="button" onClick={saveProfile} className="mt-5 rounded-lg border border-cyan-500 px-4 py-2.5 text-sm font-semibold text-cyan-300 hover:bg-cyan-950">{isSaving ? 'Saving…' : saved ? '✓ Profile saved' : 'Save master profile'}</button>
+              {hasLoaded && <p className="mt-2 text-xs text-slate-500">{saveMessage || 'Profile loaded.'}</p>}
             </div>
 
             <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-5 sm:p-6">
@@ -224,7 +282,7 @@ export default function ResumeBuilder() {
               <p className="mt-2 text-sm text-slate-400">The preview uses your profile details as entered. It does not invent qualifications, rewrite facts with an unconfigured AI model, or automatically claim you meet requirements.</p>
               <button type="button" onClick={() => setActiveTab('preview')} disabled={!cvReady} className="mt-4 w-full rounded-lg bg-cyan-400 px-4 py-3 font-bold text-slate-950 disabled:cursor-not-allowed disabled:opacity-40">Review tailored CV</button>
               {!cvReady && <p className="mt-2 text-xs text-amber-300">Enter your name and at least a summary, employment history or projects to enable preview.</p>}
-              <button type="button" onClick={() => { setProfile(emptyProfile); setSaved(false); window.localStorage.removeItem(STORAGE_KEY); }} className="mt-3 w-full rounded-lg border border-slate-700 px-4 py-2 text-sm text-slate-300 hover:border-rose-400 hover:text-rose-300">Clear saved profile</button>
+              <button type="button" onClick={() => { setProfile(emptyProfile); setSaved(false); setSaveMessage(''); setJobTitle(''); setCompany(''); setJobDescription(''); window.localStorage.removeItem(STORAGE_KEY); }} className="mt-3 w-full rounded-lg border border-slate-700 px-4 py-2 text-sm text-slate-300 hover:border-rose-400 hover:text-rose-300">Clear saved profile</button>
             </div>
           </aside>
         </div>
