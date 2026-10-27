@@ -1,10 +1,8 @@
-import NextAuth from 'next-auth';
+import NextAuth, { type NextAuthOptions } from 'next-auth';
 import GithubProvider from 'next-auth/providers/github';
 import GoogleProvider from 'next-auth/providers/google';
-import { MongoDBAdapter } from '@next-auth/mongodb-adapter';
-import clientPromise from '@/lib/mongodb';
 
-export const authOptions = {
+export const authOptions: NextAuthOptions = {
   // Configure one or more authentication providers
   providers: [
     GithubProvider({
@@ -16,8 +14,8 @@ export const authOptions = {
       clientSecret: process.env.GOOGLE_SECRET ?? '',
     }),
   ],
-  adapter: MongoDBAdapter(clientPromise),
   secret: process.env.NEXTAUTH_SECRET,
+  // JWT sessions do not require a database adapter.
   session: {
     strategy: 'jwt',
     maxAge: 30 * 24 * 60 * 60, // 30 days
@@ -25,11 +23,12 @@ export const authOptions = {
   callbacks: {
     async session({ session, token }) {
       // Attach user role from token if needed
-      if (token?.role) session.user.role = token.role;
+      const role = (token as typeof token & { role?: string })?.role;
+      if (role) (session.user as typeof session.user & { role?: string }).role = role;
       return session;
     },
     async jwt({ token, user }) {
-      if (user) token.role = (user as any).role;
+      if (user) (token as typeof token & { role?: string }).role = (user as { role?: string }).role;
       return token;
     },
   },
