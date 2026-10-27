@@ -61,6 +61,11 @@ const nextConfig = {
     NEXT_PUBLIC_APP_DESCRIPTION: 'AI-powered Job Search and Application Tracking Platform',
   },
 
+  // Experimental features retained from the existing configuration.
+  experimental: {
+    optimizeCss: true,
+    optimizePackageImports: ['@radix-ui/react-icons'],
+  },
 };
 
 module.exports = nextConfig;
