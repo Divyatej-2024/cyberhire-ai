@@ -15,7 +15,7 @@ const MAX_BODY_LENGTH = 100_000;
 
 function profileSkills(profile: Record<string, unknown>): string[] {
   const raw = typeof profile.skills === 'string' ? profile.skills : '';
-  return [...new Set(raw.split(/[\\n,;•]+/).map((skill) => skill.trim()).filter(Boolean))].slice(0, 100);
+  return [...new Set(raw.split(/[\n,;•]+/).map((skill) => skill.trim()).filter(Boolean))].slice(0, 100);
 }
 
 async function getUserFromSession() {
