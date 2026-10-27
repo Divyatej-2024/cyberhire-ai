@@ -23,11 +23,11 @@ export const authOptions = {
   callbacks: {
     async session({ session, token }) {
       // Attach user role from token if needed
-      if (token?.role) session.user.role = token.role;
+      if (token?.role) (session.user as typeof session.user & { role?: string }).role = token.role as string;
       return session;
     },
     async jwt({ token, user }) {
-      if (user) token.role = (user as any).role;
+      if (user) (token as typeof token & { role?: string }).role = (user as { role?: string }).role;
       return token;
     },
   },
