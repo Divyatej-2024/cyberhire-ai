@@ -1,8 +1,8 @@
-import NextAuth from 'next-auth';
+import NextAuth, { type NextAuthOptions } from 'next-auth';
 import GithubProvider from 'next-auth/providers/github';
 import GoogleProvider from 'next-auth/providers/google';
 
-export const authOptions = {
+export const authOptions: NextAuthOptions = {
   // Configure one or more authentication providers
   providers: [
     GithubProvider({
@@ -23,7 +23,8 @@ export const authOptions = {
   callbacks: {
     async session({ session, token }) {
       // Attach user role from token if needed
-      if (token?.role) (session.user as typeof session.user & { role?: string }).role = token.role as string;
+      const role = (token as typeof token & { role?: string })?.role;
+      if (role) (session.user as typeof session.user & { role?: string }).role = role;
       return session;
     },
     async jwt({ token, user }) {
