@@ -227,7 +227,7 @@ export interface Job {
   nice_to_haves?: string[];
   skills: string[];
   industry: string;
-  level: 'entry-level' | 'mid-level' | 'senior' | 'graduate';
+  level: 'entry-level' | 'mid-level' | 'senior' | 'lead' | 'graduate';
   visaSponsorship: boolean;
   securityClearance?: string;
   companySize: string;
