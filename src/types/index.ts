@@ -246,7 +246,7 @@ export interface Application {
   status: 'applied' | 'interview' | 'assessment' | 'offer' | 'rejected' | 'withdrawn' | 'ghosted';
   appliedAt: Date;
   updatedAt: Date;
-  notes: string;
+  notes?: string;
   attachments: string[]; // File URLs
   timeline: TimelineEntry[];
   followUpDate?: Date;
