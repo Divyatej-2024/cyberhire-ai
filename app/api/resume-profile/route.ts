@@ -24,8 +24,8 @@ async function getUserFromSession() {
   if (!email) return null;
   return prisma.user.upsert({
     where: { email },
-    update: { name: session.user?.name ?? undefined },
-    create: { email, name: session.user?.name ?? null },
+    update: { name: session?.user?.name ?? undefined },
+    create: { email, name: session?.user?.name ?? null },
   });
 }
 
