@@ -16,7 +16,8 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "e2e": "playwright test",
-    "prepare": "husky install"
+    "prepare": "husky install",
+    "postinstall": "prisma generate"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.3.4",
