@@ -85,6 +85,7 @@ model Application {
   attachments String[]
   
   timeline    TimelineEntry[]
+  reminders   Reminder[]
   
   isWishlisted Boolean @default(false)
   
@@ -426,12 +427,15 @@ model AIGeneratedContent {
 }
 
 model Reminder {
-  id          String   @id @default(auto()) @map("_id") @db.ObjectId
-  application Application @relation(fields: [applicationId], references: [id])
-  applicationId String @db.ObjectId
-  remindAt    DateTime
-  message     String
-  sent        Boolean @default(false)
+  id            String      @id @default(cuid())
+  applicationId String
+  application   Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  remindAt      DateTime
+  message       String
+  sent          Boolean     @default(false)
+
+  @@index([applicationId])
+  @@index([remindAt])
 }
 
 // Add other models for Certifications, Jobs, etc. as needed
