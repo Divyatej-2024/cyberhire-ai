@@ -234,7 +234,7 @@ export interface Job {
   posted: Date;
   deadline?: Date;
   source: string; // LinkedIn, Indeed, etc.
-  sourceUrl: string;
+  sourceUrl?: string;
   matchScore?: number;
 }
 
