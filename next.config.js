@@ -61,9 +61,8 @@ const nextConfig = {
     NEXT_PUBLIC_APP_DESCRIPTION: 'AI-powered Job Search and Application Tracking Platform',
   },
 
-  // Experimental features retained from the existing configuration.
+  // Keep optional CSS optimization disabled until its critters dependency is configured.
   experimental: {
-    optimizeCss: true,
     optimizePackageImports: ['@radix-ui/react-icons'],
   },
 };
