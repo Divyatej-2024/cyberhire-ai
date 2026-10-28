@@ -9,12 +9,15 @@ import { NextRequest, NextResponse } from 'next/server';
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
-    const search = searchParams.get('search');
-    const location = searchParams.get('location');
-    const page = searchParams.get('page') || '1';
-    const pageSize = searchParams.get('pageSize') || '20';
+    const search = searchParams.get('search')?.trim().toLowerCase();
+    const location = searchParams.get('location')?.trim().toLowerCase();
+    const page = Math.max(1, Number.parseInt(searchParams.get('page') || '1', 10) || 1);
+    const pageSize = Math.min(
+      100,
+      Math.max(1, Number.parseInt(searchParams.get('pageSize') || '20', 10) || 20)
+    );
 
-    // TODO: Query database with filters
+    // TODO: Replace this placeholder with a database-backed job search.
     const jobs = [
       {
         id: '1',
@@ -27,12 +30,25 @@ export async function GET(request: NextRequest) {
       },
     ];
 
+    const filteredJobs = jobs.filter((job) => {
+      const matchesSearch =
+        !search ||
+        [job.title, job.company, job.description].some((value) =>
+          value.toLowerCase().includes(search)
+        );
+      const matchesLocation = !location || job.location.toLowerCase().includes(location);
+      return matchesSearch && matchesLocation;
+    });
+
+    const startIndex = (page - 1) * pageSize;
+    const paginatedJobs = filteredJobs.slice(startIndex, startIndex + pageSize);
+
     return NextResponse.json({
       success: true,
-      data: jobs,
-      pagination: { page: parseInt(page), pageSize: parseInt(pageSize), total: 100 },
+      data: paginatedJobs,
+      pagination: { page, pageSize, total: filteredJobs.length },
     });
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { success: false, error: 'Internal server error' },
       { status: 500 }
