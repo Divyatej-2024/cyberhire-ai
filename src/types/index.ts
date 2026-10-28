@@ -28,9 +28,9 @@ export interface Job {
   salary?: { min: number; max: number; currency: string };
   workMode: 'remote' | 'hybrid' | 'onsite';
   jobType: 'full-time' | 'part-time' | 'contract' | 'freelance';
-  level: 'entry-level' | 'mid-level' | 'senior' | 'lead';
+  level: 'entry-level' | 'mid-level' | 'senior' | 'lead' | 'graduate';
   industry: string;
-  source: 'LinkedIn' | 'Indeed' | 'Reed' | 'Direct' | 'Other';
+  source: string;
   sourceUrl?: string;
   postedAt: Date;
   expiresAt?: Date;
@@ -65,7 +65,7 @@ export interface Application {
   id: string;
   userId: string;
   jobId: string;
-  status: 'applied' | 'interview' | 'assessment' | 'offer' | 'rejected' | 'withdrawn';
+  status: 'applied' | 'interview' | 'assessment' | 'offer' | 'rejected' | 'withdrawn' | 'ghosted';
   notes?: string;
   isWishlisted: boolean;
   appliedAt: Date;
@@ -77,7 +77,7 @@ export interface Application {
 export interface TimelineEntry {
   id: string;
   applicationId: string;
-  type: 'application' | 'review' | 'interview' | 'offer' | 'rejection' | 'note';
+  type: 'application' | 'review' | 'interview' | 'offer' | 'rejection' | 'note' | 'applied' | 'assessment' | 'rejected';
   title: string;
   description?: string;
   date: Date;
@@ -125,7 +125,7 @@ export interface MockInterview {
   role: string;
   difficulty: 'easy' | 'medium' | 'hard';
   questions: InterviewQuestion[];
-  answers: InterviewAnswer[];
+  answers: InterviewAnswer[] | string[];
   score?: number;
   feedback?: string;
   createdAt: Date;
@@ -135,7 +135,7 @@ export interface MockInterview {
 export interface InterviewQuestion {
   id: string;
   text: string;
-  category: 'technical' | 'behavioral' | 'hr' | 'scenario';
+  category: string;
   role?: string;
   difficulty: 'easy' | 'medium' | 'hard';
   starAnswer?: string;
@@ -248,16 +248,16 @@ export interface Application {
   updatedAt: Date;
   notes?: string;
   attachments: string[]; // File URLs
-  timeline: TimelineEntry[];
+  timeline?: TimelineEntry[];
   followUpDate?: Date;
   isWishlisted: boolean;
 }
 
 export interface TimelineEntry {
   id: string;
-  type: 'applied' | 'interview' | 'assessment' | 'offer' | 'rejected' | 'note';
+  type: 'application' | 'review' | 'interview' | 'offer' | 'rejection' | 'note' | 'applied' | 'assessment' | 'rejected';
   title: string;
-  description: string;
+  description?: string;
   date: Date;
   attachments?: string[];
 }
@@ -316,7 +316,7 @@ export interface InterviewQuestion {
   type: 'technical' | 'behavioral' | 'hr' | 'scenario';
   category: string;
   question: string;
-  role: string;
+  role?: string;
   difficulty: 'easy' | 'medium' | 'hard';
   starAnswer?: string;
   tags: string[];
@@ -329,7 +329,7 @@ export interface MockInterview {
   startedAt: Date;
   endedAt?: Date;
   questions: InterviewQuestion[];
-  answers: string[];
+  answers: InterviewAnswer[] | string[];
   feedback?: string;
   score?: number;
 }
@@ -338,7 +338,7 @@ export interface MockInterview {
 export interface SkillGap {
   id: string;
   userId: string;
-  jobId: string;
+  jobId?: string;
   missingSkills: SkillRequirement[];
   strongSkills: string[];
   recommendations: Recommendation[];
@@ -511,9 +511,9 @@ export interface PaginatedResponse<T> {
 export interface JobFilters {
   search?: string;
   location?: string;
-  workMode?: 'remote' | 'hybrid' | 'onsite';
-  type?: 'full-time' | 'part-time' | 'contract' | 'internship' | 'graduate';
-  level?: 'entry-level' | 'mid-level' | 'senior' | 'graduate';
+  workMode?: string;
+  type?: string;
+  level?: string;
   salaryMin?: number;
   salaryMax?: number;
   visaSponsorship?: boolean;
