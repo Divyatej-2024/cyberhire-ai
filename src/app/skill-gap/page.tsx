@@ -5,14 +5,12 @@
 
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 
 const SkillGapPage: React.FC = () => {
-  const [selectedJob, setSelectedJob] = useState('1');
-
   const skills = [
     { name: 'Python', level: 'Advanced', required: 'Intermediate', gap: 0 },
     { name: 'AWS', level: 'Intermediate', required: 'Advanced', gap: 1 },

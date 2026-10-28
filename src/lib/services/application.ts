@@ -4,7 +4,7 @@
  */
 
 import { Application, ApplicationMetrics } from '@/types';
-import { get, post, put, patch, del } from '@/lib/api/client';
+import { get, post, patch, del } from '@/lib/api/client';
 
 /**
  * Fetch user applications

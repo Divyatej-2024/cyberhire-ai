@@ -4,7 +4,7 @@
  */
 
 import { Job, JobFilters, PaginatedResponse } from '@/types';
-import { get, post } from '@/lib/api/client';
+import { get } from '@/lib/api/client';
 
 /**
  * Fetch jobs with filters and pagination
