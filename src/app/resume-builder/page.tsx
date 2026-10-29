@@ -141,6 +141,10 @@ export default function ResumeBuilder() {
     : 0;
 
   const saveProfile = async () => {
+    if (isTailoredDraft && !jobTitle.trim() && !company.trim()) {
+      setSaveMessage('Add the target job title or employer before saving this tailored draft, so it stays separate from your master profile.');
+      return;
+    }
     setIsSaving(true);
     setSaved(false);
     setSaveMessage('');
