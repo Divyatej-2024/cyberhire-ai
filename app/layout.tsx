@@ -3,12 +3,13 @@ import type { Metadata } from 'next';
 import { SessionProvider } from 'next-auth/react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
+import Providers from '@/components/Providers';
 
 export const metadata: Metadata = {
   title: 'CyberHire AI',
   description: 'AI‑powered job search and application tracker for cyber security professionals.',
 };
-
+<Providers>
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -28,3 +29,4 @@ export default function RootLayout({
     </html>
   );
 }
+</Providers>
