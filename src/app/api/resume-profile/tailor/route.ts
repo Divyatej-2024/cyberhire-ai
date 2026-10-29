@@ -1,4 +1,6 @@
+import { getServerSession } from 'next-auth/next';
 import { NextRequest, NextResponse } from 'next/server';
+import { authOptions } from '@/lib/auth-options';
 
 export const runtime = 'nodejs';
 
@@ -24,6 +26,11 @@ const fields: (keyof Profile)[] = [
 const MAX_BODY_LENGTH = 100_000;
 
 export async function POST(request: NextRequest) {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.email) {
+    return NextResponse.json({ error: 'Sign in before using AI CV tailoring.' }, { status: 401 });
+  }
+
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) {
     return NextResponse.json(
