@@ -98,6 +98,15 @@ npm run prisma:migrate
 npm run dev
 ```
 
+
+### Resume Builder: AI tailoring
+
+The Resume Builder supports a master career profile, job-advert keyword comparison, a reviewable AI-tailored draft, browser-local fallback, account-backed saving when signed in and the database is configured, print-to-PDF, and Word-compatible `.doc` export.
+
+To enable AI tailoring, set `OPENAI_API_KEY` in your server-side environment (for example, Vercel Project Settings → Environment Variables) and optionally set `OPENAI_MODEL` (defaults to `gpt-4o-mini`). Never prefix the API key with `NEXT_PUBLIC_` or commit a real key. Redeploy after changing environment variables. Without a key, the rest of the Resume Builder remains available and the AI button returns a clear configuration message.
+
+AI tailoring is an editing aid, not a verification service: it must use only the supplied profile facts. Review all content, dates, skills and qualifications before sending a CV. The keyword-overlap score is a simple text signal, not a prediction of hiring success.
+
 ## 🐳 Docker Setup
 
 ```bash

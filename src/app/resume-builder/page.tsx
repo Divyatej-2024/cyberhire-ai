@@ -60,6 +60,10 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 
 export default function ResumeBuilder() {
   const [profile, setProfile] = useState<Profile>(emptyProfile);
+  const [masterProfile, setMasterProfile] = useState<Profile>(emptyProfile);
+  const [isTailoring, setIsTailoring] = useState(false);
+  const [tailorMessage, setTailorMessage] = useState('');
+  const [isTailoredDraft, setIsTailoredDraft] = useState(false);
   const [jobTitle, setJobTitle] = useState('');
   const [company, setCompany] = useState('');
   const [jobDescription, setJobDescription] = useState('');
@@ -78,6 +82,7 @@ export default function ResumeBuilder() {
           const data = await response.json();
           if (!cancelled && data.profile && typeof data.profile === 'object') {
             setProfile({ ...emptyProfile, ...data.profile });
+            setMasterProfile({ ...emptyProfile, ...data.profile });
             setJobTitle(typeof data.jobTitle === 'string' ? data.jobTitle : '');
             setCompany(typeof data.company === 'string' ? data.company : '');
             setJobDescription(typeof data.jobDescription === 'string' ? data.jobDescription : '');
@@ -93,7 +98,9 @@ export default function ResumeBuilder() {
         const stored = window.localStorage.getItem(STORAGE_KEY);
         if (stored && !cancelled) {
           const parsed = JSON.parse(stored) as Partial<Profile> & { jobTitle?: string; company?: string; jobDescription?: string };
-          setProfile({ ...emptyProfile, ...parsed });
+          const restoredProfile = { ...emptyProfile, ...parsed };
+          setProfile(restoredProfile);
+          setMasterProfile(restoredProfile);
           setJobTitle(parsed.jobTitle ?? '');
           setCompany(parsed.company ?? '');
           setJobDescription(parsed.jobDescription ?? '');
@@ -111,6 +118,7 @@ export default function ResumeBuilder() {
 
   const update = (field: keyof Profile, value: string) => {
     setProfile((current) => ({ ...current, [field]: value }));
+    if (!isTailoredDraft) setMasterProfile((current) => ({ ...current, [field]: value }));
     setSaved(false);
     setSaveMessage('');
   };
@@ -133,6 +141,10 @@ export default function ResumeBuilder() {
     : 0;
 
   const saveProfile = async () => {
+    if (isTailoredDraft && !jobTitle.trim() && !company.trim()) {
+      setSaveMessage('Add the target job title or employer before saving this tailored draft, so it stays separate from your master profile.');
+      return;
+    }
     setIsSaving(true);
     setSaved(false);
     setSaveMessage('');
@@ -170,6 +182,65 @@ export default function ResumeBuilder() {
     }
   };
 
+  const tailorCv = async () => {
+    setIsTailoring(true);
+    setTailorMessage('');
+    try {
+      const response = await fetch('/api/resume-profile/tailor', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ profile: masterProfile, jobTitle, company, jobDescription }),
+      });
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(typeof result.error === 'string' ? result.error : 'Could not tailor this CV.');
+      setProfile({ ...emptyProfile, ...result.profile });
+      setIsTailoredDraft(true);
+      setSaved(false);
+      setSaveMessage('');
+      setTailorMessage(typeof result.notice === 'string' ? result.notice : 'Draft created. Review every line before using it.');
+    } catch (error) {
+      setTailorMessage(error instanceof Error ? error.message : 'Could not tailor this CV.');
+    } finally {
+      setIsTailoring(false);
+    }
+  };
+
+  const restoreMasterProfile = () => {
+    setProfile(masterProfile);
+    setIsTailoredDraft(false);
+    setSaved(false);
+    setSaveMessage('');
+    setTailorMessage('Restored your master career profile.');
+  };
+
+  const escapeHtml = (value: string) => value.replace(/[&<>"']/g, (character) => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+  })[character] ?? character);
+
+  const exportWord = () => {
+    const sections: [string, string][] = [
+      ['Professional Profile', profile.summary],
+      ['Key Skills', profile.skills],
+      ['Employment History', profile.experience],
+      ['Projects', profile.projects],
+      ['Education', profile.education],
+      ['Certifications & Training', profile.certifications],
+    ];
+    const sectionHtml = sections.filter(([, value]) => value.trim()).map(([title, value]) =>
+      `<h2>${escapeHtml(title)}</h2><p>${escapeHtml(value).replace(/\n/g, '<br>')}</p>`,
+    ).join('');
+    const html = `<!doctype html><html><head><meta charset="utf-8"><title>CV - ${escapeHtml(profile.fullName)}</title><style>body{font-family:Arial,sans-serif;color:#111;margin:2cm;line-height:1.45}h1{text-align:center;font-size:22pt}h2{font-size:12pt;border-bottom:1px solid #444;padding-bottom:4px;text-transform:uppercase}p{font-size:10.5pt;white-space:normal}.contact{text-align:center;color:#444;font-size:10pt}</style></head><body><h1>${escapeHtml(profile.fullName || 'Your name')}</h1><p class="contact">${escapeHtml([profile.email,profile.phone,profile.location].filter(Boolean).join(' | '))}<br>${escapeHtml([profile.linkedin,profile.portfolio].filter(Boolean).join(' | '))}</p>${(jobTitle || company) ? `<p class="contact"><strong>Tailored for ${escapeHtml([jobTitle,company].filter(Boolean).join(' at '))}</strong></p>` : ''}${sectionHtml}<p style="font-size:8pt;color:#555;border-top:1px solid #ddd;padding-top:8px">Review all details for accuracy before sending this CV.</p></body></html>`;
+    const blob = new Blob(['\ufeff', html], { type: 'application/msword;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = `${(profile.fullName || 'CV').trim().replace(/[^a-z0-9-_]+/gi, '-').replace(/^-|-$/g, '') || 'CV'}-CyberHire.doc`;
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
+    URL.revokeObjectURL(url);
+  };
+
   const printCv = () => {
     setActiveTab('preview');
     window.setTimeout(() => window.print(), 100);
@@ -189,6 +260,22 @@ export default function ResumeBuilder() {
           <button type="button" onClick={saveProfile} className="rounded-lg border border-slate-600 px-4 py-2 text-sm font-semibold hover:border-cyan-400">{isSaving ? 'Saving…' : saved ? '✓ Profile saved' : 'Save profile'}</button>
           <button type="button" onClick={printCv} disabled={!cvReady} className="rounded-lg bg-cyan-400 px-4 py-2 text-sm font-bold text-slate-950 disabled:cursor-not-allowed disabled:opacity-40">Print / Save PDF</button>
         </div>
+      </div>
+
+      <div className="mb-5 rounded-2xl border border-cyan-900/70 bg-slate-900/70 p-4 no-print">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 className="font-semibold text-cyan-200">AI-assisted tailoring</h2>
+            <p className="mt-1 text-sm text-slate-400">Create a separate draft from your master profile. It will not invent qualifications or replace your source profile.</p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {isTailoredDraft && <button type="button" onClick={restoreMasterProfile} className="rounded-lg border border-slate-600 px-3 py-2 text-sm">Restore master profile</button>}
+            <button type="button" onClick={tailorCv} disabled={isTailoring || !jobDescription.trim() || !masterProfile.fullName.trim()} className="rounded-lg bg-cyan-400 px-4 py-2 text-sm font-bold text-slate-950 disabled:cursor-not-allowed disabled:opacity-40">{isTailoring ? 'Tailoring…' : 'Tailor CV to this job'}</button>
+            <button type="button" onClick={exportWord} disabled={!cvReady} className="rounded-lg border border-cyan-700 px-3 py-2 text-sm text-cyan-100 disabled:opacity-40">Export Word</button>
+          </div>
+        </div>
+        {tailorMessage && <p role="status" className="mt-3 text-sm text-slate-200">{tailorMessage}</p>}
+        {isTailoredDraft && <p className="mt-2 text-xs text-amber-300">AI draft active. Review it carefully; save with a job title/company to store it as a separate tailored version.</p>}
       </div>
 
       <div className="mb-5 flex gap-2 no-print">
