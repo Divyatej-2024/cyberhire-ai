@@ -33,7 +33,7 @@ export async function GET() {
   try {
     const user = await getUserFromSession();
     if (!user) return NextResponse.json({ error: 'Sign in to access your saved resume profile.' }, { status: 401 });
-    const resume = await prisma.resume.findFirst({ where: { userId: user.id, title: { startsWith: PROFILE_TITLE } }, orderBy: { updatedAt: 'desc' } });
+    const resume = await prisma.resume.findFirst({ where: { userId: user.id, title: PROFILE_TITLE } }) ?? await prisma.resume.findFirst({ where: { userId: user.id, title: { startsWith: PROFILE_TITLE } }, orderBy: { updatedAt: 'desc' } });
     if (!resume) return NextResponse.json({ profile: null, jobTitle: '', company: '', jobDescription: '' });
     let saved: Record<string, unknown>;
     try { saved = JSON.parse(resume.content) as Record<string, unknown>; } catch { saved = {}; }
