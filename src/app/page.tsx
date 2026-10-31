@@ -100,6 +100,17 @@ export default function Home() {
         </div>
       </section>
 
+      <section className="border-y border-cyan-400/20 bg-cyan-400/5 py-12">
+        <div className="mx-auto flex max-w-7xl flex-col items-start justify-between gap-5 px-4 sm:flex-row sm:items-center sm:px-6 lg:px-8">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[.2em] text-cyan-300">New workspace</p>
+            <h2 className="mt-2 text-2xl font-bold text-white">Explore CyberAI Mission Control</h2>
+            <p className="mt-2 text-sm text-slate-400">Try the first defensive phishing-triage workflow.</p>
+          </div>
+          <Link href="/cyberai" className="rounded-xl bg-cyan-400 px-5 py-3 text-sm font-semibold text-slate-950 hover:bg-cyan-300">Open CyberAI →</Link>
+        </div>
+      </section>
+
       <section className="bg-slate-900/50 py-20">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="mb-16 text-center">
