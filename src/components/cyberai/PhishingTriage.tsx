@@ -32,7 +32,7 @@ export function PhishingTriage() {
         <p className="mt-1 text-sm text-slate-400">{flag.explanation}</p>
       </article>) : <p className="rounded-xl border border-emerald-400/20 p-4 text-sm text-emerald-200">No configured patterns matched. This does not mean the message is safe.</p>}
       {result.urls.length > 0 && <div className="rounded-xl border border-white/10 p-4"><strong className="text-sm text-white">URLs detected (not opened)</strong><ul className="mt-2 break-all text-sm text-cyan-200">{result.urls.map((url, i) => <li key={i}>{url}</li>)}</ul></div>}
-      <div className="rounded-xl bg-slate-950 p-4 text-sm leading-6 text-slate-300"><strong className="text-white">Next checks</strong><ul className="mt-2 list-disc pl-5"><li>Verify the sender using a known independent contact method.</li><li>Review full headers and SPF, DKIM and DMARC results.</li><li>Do not open unexpected links or attachments.</li><li>Report through your organisation's approved process.</li></ul></div>
+      <div className="rounded-xl bg-slate-950 p-4 text-sm leading-6 text-slate-300"><strong className="text-white">Next checks</strong><ul className="mt-2 list-disc pl-5"><li>Verify the sender using a known independent contact method.</li><li>Review full headers and SPF, DKIM and DMARC results.</li><li>Do not open unexpected links or attachments.</li><li>Report through your organisation&apos;s approved process.</li></ul></div>
     </div>}
     <p className="mt-5 border-t border-white/10 pt-4 text-xs leading-5 text-slate-500">Limitations: heuristic demonstration only. No AI model, URL reputation, header, attachment or sandbox analysis. Findings require human review.</p>
   </section>;
