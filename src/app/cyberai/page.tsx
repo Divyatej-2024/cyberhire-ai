@@ -1,11 +1,12 @@
 import Link from 'next/link';
 import { PhishingTriage } from '@/components/cyberai/PhishingTriage';
+import { CyberSecurityWorkbench } from '@/components/cyberai/CyberSecurityWorkbench';
 
 const modules = [
   { name: 'Phishing triage', state: 'Available', detail: 'Local pattern-based review of message text.' },
-  { name: 'Security cases', state: 'Planned', detail: 'Track evidence, findings and analyst decisions.' },
-  { name: 'Log intelligence', state: 'Planned', detail: 'Parse authorised sample logs with source-line references.' },
-  { name: 'Vulnerability intelligence', state: 'Planned', detail: 'Enrich CVE records and prioritise remediation.' },
+  { name: 'Security cases', state: 'Available', detail: 'Browser-local case tracking and status workflow.' },
+  { name: 'Log intelligence', state: 'Available', detail: 'Local keyword triage with source-line references.' },
+  { name: 'Vulnerability intelligence', state: 'Available', detail: 'NVD CVE record lookup and CVSS display.' },
 ];
 
 export default function CyberAIPage() {
@@ -24,6 +25,7 @@ export default function CyberAIPage() {
         </article>)}
       </section>
       <PhishingTriage />
+      <CyberSecurityWorkbench />
       <footer className="mt-8 rounded-xl border border-amber-400/20 bg-amber-400/5 p-4 text-sm leading-6 text-amber-100/80">
         <strong className="text-amber-200">Responsible-use boundary:</strong> Use only messages and data you are authorised to examine. CyberAI provides decision support, not a definitive verdict. It does not open links, execute files, scan external systems or take remediation actions.
       </footer>
