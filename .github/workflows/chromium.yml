@@ -19,7 +19,7 @@ jobs:
         with:
           node-version: 20
           cache: npm
-      - run: npm ci
+      - run: npm install
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
       - name: Run browser tests
